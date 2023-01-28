@@ -1,0 +1,427 @@
+---
+title: "Introduction to SABR Model and Applications"
+author: 'Sarbojeet Saha (engage@sarbosaha.com)'
+date: 'June 08, 2022'
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to SABR Model and Applications}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# 1. Introduction
+## 1.1 Overview
+The SABRFunctions package is a suite of functions designed to implement the *Stochastic Alpha Beta Rho Nu* model, originally defined in the classic paper, 'Managing Smile Risk' by Hagan et al, 2002. The package is designed to provide a full range of tools and data that allow the user to understand exactly how the SABR model is calibrated and used in real-world financial applications in the field of derivatives pricing.
+
+The examples and code documentation given below are taken directly from the world of interest rate options. However, the SABR model can be used with options on forwards of any asset class, and the ideas presented in this vignette can easily be extended to options on FX, commodities, stock, and credit contracts, as required.
+
+## 1.2 Motivation
+I presented the SABR model and its uses in the context of fixed-income trading at various Practitioner's Seminar discussions at Columbia University from 2011 to 2014. However, I always felt as though my own presentation was lacking, and my understanding was not as good as it should have been, especially with respect to the calibration process behind SABR. When I had a bit of time on my hands, I decided to get back into the world of R programming in a more serious way and expand my skillset by revisiting my original SABR presentation and redoing it in a more substantive and correct manner. The results are contained in this package. All of the code, documentation, and data extracts are mine - source data are originally taken from Bloomberg.
+
+## 1.3 Further Reading
+This vignette provides a demonstration of the key concepts, functions, and tools contained in the package itself. For a broader theoretical and practical understanding of the SABR model, as well as an outlay of the results from the code in this package, please see [the presentation that encapsulates the entire project](https://sarbosaha.com/wp-content/uploads/2022/06/SABR-Presentation-2.0.pdf). You can download and view this presentation for free.
+
+# 2. Understanding Volatility Smiles
+Options on most underlying assets in financial markets exhibit a *volatility smile* - that is to say, implied volatilities for options at different strikes are, indeed, different. This contradicts a fundamental assumption of the Black-Scholes (1973) option pricing model, and its simplified version for pricing options on forwards and futures in the Black (1976) model. These models make a "strict" assumption that implied volatility is constant across all option expiries, and all strikes of the underlying asset.
+
+The **SABRFunctions** package contains data that shows clearly the nature of the problem:
+
+```{r setup, fig.width = 8, fig.height = 6}
+library(SABRFunctions)
+library(ggplot2)
+library(dplyr)
+data("sabrcalibdata")
+ggplot(data = sabrcalibdata, aes(x = Strike * 100, y = BlackVol * 100, colour = Point)) +
+  geom_point() +
+  geom_line() +
+  labs(x = 'Swap Strike Rate (%)', y = 'Market-Quoted Black-76 Implied Volatility (%)',
+       title = 'Market Smiles for Commonly Traded Swaption Contracts',
+       subtitle = 'Implied Volatility Against Absolute Strike for Common Swap Tenors as of May 23 2022',
+       caption = '(Source: Bloomberg)',
+       colour = 'Forward Rate')
+```
+
+Clearly, the idea of constant or flat volatility is impractical for pricing actual options. Doing so will result in incorrect and inconsistent pricing, and, even worse, unstable and non-additive hedging.
+
+# 3. The SABR Model
+In their classic 2002 paper, Hagan, Lesniewski, Kumar, and Woodward proposed an alternative to the classic Black-76 formulation of the one-factor forward rate process with the strict assumption of constant volatility, and suggested instead a *Constant Elasticity of Variance* model using two factors:
+
+```{=latex}
+\begin{align*}
+\text{d}F_t &= \alpha_t F ^{\beta} \text{d}W_t\\
+\text{d}\alpha_t &= \nu \alpha_t \text{d}Z_t\\
+\text{d}W_t Z_t &= \rho \\
+\text{Here,}\\
+\alpha, \nu &> 0 \\
+\beta &\in \left [ 0, 1 \right ] \\
+\left | \rho \right | &\leq 1 \\
+\end{align*}
+```
+
+Unlike the Black-76 model, **there is no analytical solution** to this set of equations, outside of very special situations where Beta is 0 or 1. However, very close analytical approximations can be found, which present implied volatility as a function of the parameters Alpha, Beta, Rho, and Nu, as well as the current forward rate, the strike of the option, and the time to expiry. See the presentation referenced in Section 1.3 above for further details.
+
+# 4. Calibrating the SABR Model
+The SABR model returns Black-76-equivalent implied volatilities for any given Alpha, Beta, Rho, and Nu, as well as for the given Forward and Strike rates. This implied volatility can then be plugged straight into the standard Black-76 pricing equation for a European call or put option on a given forward rate.
+
+However, the parameters must themselves first be calibrated.
+
+## 4.1 Calibrating the Beta Parameter
+This is the required first step for any SABR calibration. You can do this in one of two ways. Either you can regress log-forward rates against log-implied volatilities and take the resulting coefficients to calculate your Beta. Or you can simply use a flat Beta *a priori*. Either approach is fine, and in practice many users tend to prefer a simple flat Beta of 0.5.
+
+### 4.1.1 Historical Estimation of Beta
+The datasets included with the **SABRFunctions** package allow the user to see how historical estimation might work. Consider the following example, using the *histratevoldata* dataset:
+
+``` {r, fig.width = 8, fig.height = 6}
+data('histratevoldata')
+ggplot(data = histratevoldata, aes(x = log(Forward), y = log(BlackVol), colour = Rate)) +
+  geom_point() +
+  geom_line() +
+  labs(x = 'Log of ATM Forward Rates', y = 'Log of Black ATM Vols',
+       title = 'Parametrisation of SABR Beta Shape Parameters',
+       subtitle = 'Relationship Between Log of Forward Rates and Log of ATM Black Vols with Linear Regression Lines',
+       caption = '(Source: Bloomberg)') +
+  geom_smooth(method = 'lm')
+```
+
+This is a graphical representation of the basic result:
+
+```{=latex}
+\begin{align*}
+\ln{\sigma_{Mkt(ATM)}}= \ln{ \alpha} - (1-\beta)\ln{F}
+\end{align*}
+```
+
+This result can then be used to compute the historically-estimated Beta, using standard R methods:
+
+```{r}
+data("histratevoldata")
+library(dplyr)
+hist3m10y <- histratevoldata %>% filter(Rate == '3M10Y')
+beta_est <- lm(log(histratevoldata$BlackVol) ~ log(histratevoldata$Forward))
+summary(beta_est)
+histBeta <- as.numeric(beta_est$coefficients[2] + 1)
+print(histBeta)
+```
+
+This method allows for rapid estimation of Beta using historical data, but the major disadvantage is the need for large amounts of such data before you can run these estimates.
+
+### 4.1.2 A Priori Beta
+Some users might prefer to simply fix Beta at 0.5. In practice, there is really nothing much wrong with this approach - Beta does not move substantially, and, for reasons of consistency and clean P&L attribution, it is generally a bad idea to change Beta daily.
+
+A slightly more sophisticated approach involves looking at the actual curve points to understand where forward rates are likely to be normally or lognormally distributed. This can be accomplished simply by graphing swap rates:
+
+```{r, fig.width = 8, fig.height = 6}
+data('curves')
+library(ggplot2)
+ggplot(data = curves, aes(x = Term, y = Value, colour = Type)) +
+  geom_line() +
+  geom_point() +
+  labs(x = 'Term (Years)', y = 'Rate (%)',
+       title = 'USD SOFR Swap and Zero Curves',
+       subtitle = 'Fixed 30/360 vs SOFR Rates as of May 23 2022',
+       caption = '(Source: Bloomberg)',
+       colour = 'Rate Type')
+```
+
+The graph of swap and zero rates indicates that shorter-maturity swap forward rates should be modelled using a Beta of close to 1, to ensure that they cannot go negative in the model. By contrast, longer-dated swap forward rates can be modelled using a Beta of closer to 0, as they are unlikely ever to go negative.
+
+## 4.2 Calibrating Alpha, Rho, and Nu
+Once the appropriate Beta parameter is chosen, the user must calibrate the remaining parameters. There are two ways to do this - either calibrate Alpha *implicitly* using ATM volatilities to calibrate Rho and Nu explicitly, or calibrate all three parameters simultaneously. Both approaches require non-linear minimisation using a sum-of-square-errors approach. The first requires an additional step of defining an "anonymous function" in the form of SABR Alpha as a cubic polynomial in terms of all of the other parameters.
+
+Both methods are implemented within the **SABRFunctions** package. The following code examples show how to use each method.
+
+### 4.2.1 Full Calibration
+The following code example shows how to calibrate all SABR parameters and return back the fully calibrated volatility smile:
+
+```{r}
+data("sabrcalibdata")
+library(dplyr)
+sabr3m10y <- sabrcalibdata %>% filter(Point == '3M10Y')
+
+#Setup SABR params
+F0 <- sabr3m10y$Strike[1]          #ATM Forward Rate
+K <- sabr3m10y$Strike              #Vector of strikes
+MarketVols <- sabr3m10y$BlackVol   #Vector of vols
+
+t <- 0.25                          #Assume 3M to expiry of option
+
+#Initialise SABR parameters
+Alpha <- 0.05                      #Best guess of initial Alpha
+Beta <- 0.5                        #Assume simple 0.5 Beta
+Rho <- 0.1                         #Guess value must be between -1 and 1
+Nu <- 0.7                          #Guess value must be greater than 0
+
+SABR3M10YFullCalib <- SABRVolsFromFullCalib(F0, K, MarketVols, t, Beta, Alpha, Rho, Nu)
+SABR3M10YFullCalib
+```
+
+### 4.2.2 ATM Calibration
+The following code example shows how to calibrate Rho and Nu SABR parameters and return back the fully calibrated volatility smile, after implicitly calibrating Alpha once the other parameters have been set:
+
+```{r}
+data("sabrcalibdata")
+library(dplyr)
+sabr3m10y <- sabrcalibdata %>% filter(Point == '3M10Y')
+
+#Setup SABR params
+F0 <- sabr3m10y$Strike[1]          #ATM Forward Rate
+ATMVol <- sabr3m10y$BlackVol[1]    #ATM Black vol quoted in market
+K <- sabr3m10y$Strike              #Vector of strikes
+MarketVols <- sabr3m10y$BlackVol   #Vector of vols
+
+t <- 0.25                          #Assume 3M to expiry of option
+
+#Initialise SABR parameters
+Beta <- 0.5                        #Assume simple 0.5 Beta
+Rho <- 0.1                         #Guess value must be between -1 and 1
+Nu <- 0.7                          #Guess value must be greater than 0
+
+SABR3M10YATMCalib <- SABRVolsFromATMCalib(F0, ATMVol, K, MarketVols, t, Beta, Rho, Nu)
+SABR3M10YATMCalib
+```
+
+### 4.2.3 Difference Between Full and ATM Calibration
+Be sure to note the clear differences between these two methods:
+
+* ATM calibration requires you to provide an ATM lognormal volatility quote, but does not require you to guess the initial value of Alpha
+* Full calibration requires you to provide an initial guess for Alpha, but does not require an ATM volatility quote
+
+The actual method used in both cases differs slightly. Your choice of method depends on your asset class for SABR pricing. For interest rate swaptions, the ATM method is best, since this calibrates very closely to the actual ATM market volatility, and this is by far the most liquid and heavily traded option in the market. For other asset classes, full calibration may be more appropriate.
+
+# 5. Using the Calibrated SABR Results
+These calibrations are interesting in and of themselves, but their greatest impact lies in their practical usage for actual option pricing and analysis.
+
+## 5.1 Comparing Calibrated SABR Volatilities Against Market Quotes
+The following code demonstrates how to map calibrated SABR lognormal volatilites against quoted values in the market, using results from previous runs of this code:
+
+```{r, fig.width = 8, fig.height = 6}
+data("sabrfitteddata")
+library(ggplot2)
+library(dplyr)
+Fitted3M10YData <- sabrfitteddata %>% filter(Point == '3M10Y') %>% select(Method, Strike, Value)
+ATM <- Fitted3M10YData$Strike[Fitted3M10YData$Method == 'MARKET'][1] * 100
+ATMVOL <- Fitted3M10YData$Value[Fitted3M10YData$Method == 'MARKET'][1] * 100
+ggplot(data = Fitted3M10YData, aes(x = Strike * 100, y = Value * 100, colour = Method)) +
+  geom_point(aes(x = ATM, y = ATMVOL), colour = 'red', size = 5, stroke = 1, fill = 'yellow', shape = 21) +
+  geom_point() +
+  geom_line() +
+  labs(x = 'Swaption Strike (%)', y = 'Swaption Implied Black-76 (Lognormal) Volatility (%)',
+       title = 'Comparison of 3M10Y Swaption Volatilities Against Fitted Values',
+       subtitle = 'ATM and Full Calibration of SABR, with Actual ATM Highlighted')
+```
+
+As you can see from the graph above, the fits between SABR calibrated Black-76-equivalent volatilities, and the actual market quotes, are very close overall, though there is some variation for high-strike options. Once you have the original and calibrated data in an appropriately structured data frame, you can use tidyverse/dplyr tools to manipulate the data into something that will be easy to graph using ggplot2.
+
+## 5.2 Comparing SABR and Black-76 Greeks
+The SABR model requires adjustments to standard Black-76 Greeks for hedging and risk management purposes. The **SABRFunctions** suite contains a number of functions designed specifically to show the risks from options priced using SABR-calibrated implied lognormal volatilities.
+
+The following sections will show you how to run comparisons of SABR Delta, Gamma, and Vega against Black-76 standard model results.
+
+### 5.2.1 Comparing SABR and Black-76 Delta
+The following (admittedly rather lengthy) code generates a clear comparison between Delta for options priced using SABR ATM/Full calibrated lognormal volatilities, and options priced using Black-76 closed-form Delta, across a wide range of possible forward rates, for a strike of 2.5% on the 3M10Y swaption.
+
+```{r, fig.width = 8, fig.height = 6}
+data("sabrcalibdata")
+library(tidyr)
+sabr3m10y <- sabrcalibdata %>% filter(Point == '3M10Y')
+
+#Setup SABR params
+F0 <- 0.0266                       #ATM Forward Rate
+K <- 0.0250                        #Strike for graphing
+ATMVol <- sabr3m10y$BlackVol[1]    #ATM Black vol quoted in market
+MarketStrikes <- sabr3m10y$Strike  #Vector of strikes
+MarketVols <- sabr3m10y$BlackVol   #Vector of vols
+rfr <- 0.02                        #Riskless rate for discounting
+
+tex <- 0.25                          #Assume 3M to expiry of option
+
+#Initialise SABR parameters
+Alpha <- 0.05                      #Best guess of initial Alpha
+Beta <- 0.5                        #Assume simple 0.5 Beta
+Rho <- 0.1                         #Guess value must be between -1 and 1
+Nu <- 0.7                          #Guess value must be greater than 0
+
+SABR3M10YATMCalib <- SABRVolsFromATMCalib(F0, ATMVol, MarketStrikes, MarketVols, tex, Beta, Rho, Nu)
+SABR3M10YFullCalib <- SABRVolsFromFullCalib(F0, MarketStrikes, MarketVols, tex, Beta, Alpha, Rho, Nu)
+
+#ATM calibration runs:
+Alpha_ATM <- SABR3M10YATMCalib$SABR_Alpha
+Beta_ATM <- SABR3M10YATMCalib$SABR_Beta
+Rho_ATM <- SABR3M10YATMCalib$SABR_Rho
+Nu_ATM <- SABR3M10YATMCalib$SABR_Nu
+
+#Full calibration runs:
+Alpha_Full <- SABR3M10YFullCalib$SABR_Alpha
+Beta_Full <- SABR3M10YFullCalib$SABR_Beta
+Rho_Full <- SABR3M10YFullCalib$SABR_Rho
+Nu_Full <- SABR3M10YFullCalib$SABR_Nu
+
+### Delta comparison:
+x <- seq(0.001, 0.05, by = 0.001)
+n <- length(x)
+
+BSDeltaVec <- ATMDeltaVec <- FullDeltaVec <- rep(0, n)
+for (i in 1:n){
+  BSDeltaVec[i] <- Black76Delta(x[i], K, ATMVol, tex, rfr, 'c')
+  ATMDeltaVec[i] <- SABRDelta(x[i], K, tex, rfr, 'c', Alpha_ATM, Beta_ATM, Rho_ATM, Nu_ATM)
+  FullDeltaVec[i] <- SABRDelta(x[i], K, tex, rfr, 'c', Alpha_Full, Beta_Full, Rho_Full, Nu_Full)
+}
+
+DeltasMat <- as.data.frame(cbind(x, BSDeltaVec, ATMDeltaVec, FullDeltaVec))
+names(DeltasMat) <- c('Strike', 'Black76', 'ATM', 'Full')
+plotDeltaMat <- pivot_longer(DeltasMat, cols = c('Black76', 'ATM', 'Full'), names_to = 'Method', values_to = 'Delta')
+
+###FINAL DELTA PLOT
+ggplot(data = plotDeltaMat, aes(x = Strike * 100, y = Delta * 100, colour = Method)) +
+  geom_point() +
+  geom_line() +
+  labs(x = '3M10Y Forward Rate (%)', y = 'Delta of 3M Option (%)',
+       title = 'Delta of 3M10Y Option by Method',
+       subtitle = 'Comparing Black-76 Delta with SABR ATM and Full Methods')
+
+```
+
+### 5.2.2 Comparing SABR and Black-76 Gamma
+Finally, this code generates a clear comparison between Gamma for options priced using SABR ATM/Full calibrated lognormal volatilities, and options priced using Black-76 closed-form Gamma, across a wide range of possible forward rates, for a strike of 2.5% on the 3M10Y swaption.
+
+```{r, fig.width = 8, fig.height = 6}
+data("sabrcalibdata")
+library(tidyr)
+sabr3m10y <- sabrcalibdata %>% filter(Point == '3M10Y')
+
+#Setup SABR params
+F0 <- 0.0266                       #ATM Forward Rate
+K <- 0.0250                        #Strike for graphing
+ATMVol <- sabr3m10y$BlackVol[1]    #ATM Black vol quoted in market
+MarketStrikes <- sabr3m10y$Strike  #Vector of strikes
+MarketVols <- sabr3m10y$BlackVol   #Vector of vols
+rfr <- 0.02                        #Riskless rate for discounting
+
+tex <- 0.25                          #Assume 3M to expiry of option
+
+#Initialise SABR parameters
+Alpha <- 0.05                      #Best guess of initial Alpha
+Beta <- 0.5                        #Assume simple 0.5 Beta
+Rho <- 0.1                         #Guess value must be between -1 and 1
+Nu <- 0.7                          #Guess value must be greater than 0
+
+SABR3M10YATMCalib <- SABRVolsFromATMCalib(F0, ATMVol, MarketStrikes, MarketVols, tex, Beta, Rho, Nu)
+SABR3M10YFullCalib <- SABRVolsFromFullCalib(F0, MarketStrikes, MarketVols, tex, Beta, Alpha, Rho, Nu)
+
+#ATM calibration runs:
+Alpha_ATM <- SABR3M10YATMCalib$SABR_Alpha
+Beta_ATM <- SABR3M10YATMCalib$SABR_Beta
+Rho_ATM <- SABR3M10YATMCalib$SABR_Rho
+Nu_ATM <- SABR3M10YATMCalib$SABR_Nu
+
+#Full calibration runs:
+Alpha_Full <- SABR3M10YFullCalib$SABR_Alpha
+Beta_Full <- SABR3M10YFullCalib$SABR_Beta
+Rho_Full <- SABR3M10YFullCalib$SABR_Rho
+Nu_Full <- SABR3M10YFullCalib$SABR_Nu
+
+### Vega comparison:
+x <- seq(0.001, 0.05, by = 0.001)
+n <- length(x)
+
+BSGammaVec <- ATMGammaVec <- FullGammaVec <- rep(0, n)
+for (i in 1:n){
+  BSGammaVec[i] <- Black76Gamma(x[i], K, ATMVol, tex, rfr)
+  ATMGammaVec[i] <- SABRGamma(x[i], K, tex, rfr, Alpha_ATM, Beta_ATM, Rho_ATM, Nu_ATM)
+  FullGammaVec[i] <- SABRGamma(x[i], K, tex, rfr, Alpha_Full, Beta_Full, Rho_Full, Nu_Full)
+}
+
+GammasMat <- as.data.frame(cbind(x, BSGammaVec, ATMGammaVec, FullGammaVec))
+names(GammasMat) <- c('Strike', 'Black76', 'ATM', 'Full')
+plotGammaMat <- pivot_longer(GammasMat, cols = c('Black76', 'ATM', 'Full'), names_to = 'Method', values_to = 'Gamma')
+
+#Plot Gammas
+ggplot(data = plotGammaMat, aes(x = Strike * 100, y = Gamma, colour = Method)) +
+  geom_point() +
+  geom_line() +
+  labs(x = '3M10Y Forward Rate (%)', y = 'Gamma of 3M Option',
+       title = 'Gamma of 3M10Y Option by Method',
+       subtitle = 'Comparing Black-76 Gamma with SABR ATM and Full Methods')
+
+```
+
+### 5.2.3 Comparing SABR and Black-76 Vega
+Finally, this code generates a clear comparison between Vega for options priced using SABR ATM/Full calibrated lognormal volatilities, and options priced using Black-76 closed-form Vega, across a wide range of possible forward rates, for a strike of 2.5% on the 3M10Y swaption.
+
+```{r, fig.width = 8, fig.height = 6}
+data("sabrcalibdata")
+library(tidyr)
+sabr3m10y <- sabrcalibdata %>% filter(Point == '3M10Y')
+
+#Setup SABR params
+F0 <- 0.0266                       #ATM Forward Rate
+K <- 0.0250                        #Strike for graphing
+ATMVol <- sabr3m10y$BlackVol[1]    #ATM Black vol quoted in market
+MarketStrikes <- sabr3m10y$Strike  #Vector of strikes
+MarketVols <- sabr3m10y$BlackVol   #Vector of vols
+rfr <- 0.02                        #Riskless rate for discounting
+
+tex <- 0.25                          #Assume 3M to expiry of option
+
+#Initialise SABR parameters
+Alpha <- 0.05                      #Best guess of initial Alpha
+Beta <- 0.5                        #Assume simple 0.5 Beta
+Rho <- 0.1                         #Guess value must be between -1 and 1
+Nu <- 0.7                          #Guess value must be greater than 0
+
+SABR3M10YATMCalib <- SABRVolsFromATMCalib(F0, ATMVol, MarketStrikes, MarketVols, tex, Beta, Rho, Nu)
+SABR3M10YFullCalib <- SABRVolsFromFullCalib(F0, MarketStrikes, MarketVols, tex, Beta, Alpha, Rho, Nu)
+
+#ATM calibration runs:
+Alpha_ATM <- SABR3M10YATMCalib$SABR_Alpha
+Beta_ATM <- SABR3M10YATMCalib$SABR_Beta
+Rho_ATM <- SABR3M10YATMCalib$SABR_Rho
+Nu_ATM <- SABR3M10YATMCalib$SABR_Nu
+
+#Full calibration runs:
+Alpha_Full <- SABR3M10YFullCalib$SABR_Alpha
+Beta_Full <- SABR3M10YFullCalib$SABR_Beta
+Rho_Full <- SABR3M10YFullCalib$SABR_Rho
+Nu_Full <- SABR3M10YFullCalib$SABR_Nu
+
+### Vega comparison:
+x <- seq(0.001, 0.05, by = 0.001)
+n <- length(x)
+
+BSVegaVec <- ATMVegaVec <- FullVegaVec <- rep(0, n)
+for (i in 1:n){
+  BSVegaVec[i] <- Black76Vega(x[i], K, ATMVol, tex, rfr)
+  ATMVegaVec[i] <- SABRVega(x[i], K, tex, rfr, Alpha_ATM, Beta_ATM, Rho_ATM, Nu_ATM)
+  FullVegaVec[i] <- SABRVega(x[i], K, tex, rfr, Alpha_Full, Beta_Full, Rho_Full, Nu_Full)
+}
+
+VegasMat <- as.data.frame(cbind(x, BSVegaVec, ATMVegaVec, FullVegaVec))
+names(VegasMat) <- c('Strike', 'Black76', 'ATM', 'Full')
+plotVegaMat <- pivot_longer(VegasMat, cols = c('Black76', 'ATM', 'Full'), names_to = 'Method', values_to = 'Vega')
+
+#Plot Vegas
+ggplot(data = plotVegaMat, aes(x = Strike * 100, y = Vega, colour = Method)) +
+  geom_point() +
+  geom_line() +
+  labs(x = '3M10Y Forward Rate (%)', y = 'Vega of 3M Option',
+       title = 'Vega of 3M10Y Option by Method',
+       subtitle = 'Comparing Black-76 Vega with SABR ATM and Full Methods')
+
+```
+
+# 6. Concluding Remarks
+The **SABRFunctions** package contains the full suite of tools necessary to price and risk options on forwards and futures across a broad range of asset classes. Examining the code will show how the calibration procedure works. All functions and data sets come with documentation, so that you can run these examples for yourself, and you can examine the code directly to understand how each piece works.
+
+I welcome feedback, commentary, and especially bug reports, so please feel free to email me using the details noted above.
+
+Otherwise, I wish you well in using this for your own knowledge, pricing, and general understanding.
+
+- Sarbo
+June 9 2022
