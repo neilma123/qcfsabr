@@ -8,11 +8,23 @@
 
 using namespace std;
 
-double ATMVol_to_Sabr_alpha() {};
+double ATMVol_to_Sabr_alpha() {
+    vector<double> roots;
+    double x[] = {-100000,100000};
+    string cubic_1 = SABRAlphaCubic(x[1]);
+    string cubic_2 = SABRAlphaCubic(x[2]);
+    
+
+};
 
 vector<double> SABRATMCalib(double guess_rho, double guess_nu) {};
 
-string SABRAlphaCubic(double curr_val) {};
+string SABRAlphaCubic(double curr_val) {
+    
+    
+
+
+};
 
 double SABRDelta() {};
 
