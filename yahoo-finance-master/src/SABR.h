@@ -24,15 +24,15 @@ public:
 
     double ATMVol_to_Sabr_alpha();
 
-    vector<double> SABRATMCalib(double guess_rho, double guess_nu);
+    vector<double> ATMCalib(double guess_rho, double guess_nu);
 
-    string SABRAlphaCubic(double curr_val);
+    string AlphaCubic(double curr_val);
 
     double SABRDelta();
 
-    vector<double> SABRfullcalib();
+    vector<double> fullcalib();
 
-    vector<double> SABRParamlinearbump();
+    vector<double> Paramlinearbump();
 
     double SABR_to_Black76();
 
@@ -44,7 +44,7 @@ public:
 
     double SABRGamma();
 
-    vector<double> SABRVolsFromATMCalib();
+    vector<double> VolsFromATMCalib();
     
-    vector<double> SABRVolsFromFullCalib();
+    vector<double> VolsFromFullCalib();
 };
