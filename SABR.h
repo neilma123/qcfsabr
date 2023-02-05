@@ -30,9 +30,9 @@ public:
 
     double SABRDelta();
 
-    vector<double> SABRfullcalib();
+    vector<double> SABRfullcalib(double guess_alpha, double guess_rho, double guess_nu);
 
-    vector<double> SABRParamlinearbump();
+    vector<double> SABRParamlinearbump(string bump_param, double bump_size, bool bump_dir);
 
     double SABR_to_Black76();
 
@@ -44,7 +44,7 @@ public:
 
     double SABRGamma();
 
-    vector<double> SABRVolsFromATMCalib();
+    vector<double> SABRVolsFromATMCalib(double guess_rho, double guess_nu);
     
-    vector<double> SABRVolsFromFullCalib();
-}
+    vector<double> SABRVolsFromFullCalib(double guess_alpha, double guess_rho, double guess_nu);
+};
