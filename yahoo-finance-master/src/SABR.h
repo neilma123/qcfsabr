@@ -26,7 +26,7 @@ public:
 
     vector<double> ATMCalib(double guess_rho, double guess_nu);
 
-    string AlphaCubic(double curr_val);
+    vector<double> AlphaCubic();
 
     double SABRDelta(BlackOption blk);
 
@@ -44,7 +44,7 @@ public:
 
     double SABRGamma();
 
-    vector<double> SABRVolsFromATMCalib(double guess_rho, double guess_nu);
+    vector<double> VolsFromATMCalib(double guess_rho, double guess_nu);
     
     vector<double> SABRVolsFromFullCalib(double guess_alpha, double guess_rho, double guess_nu);
 
