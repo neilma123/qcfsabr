@@ -24,6 +24,7 @@ public:
     double Black76OptionPrice();
     
     // Black76Delta
+    // Imp_vol is a parameter since it can be acquired from SABRtoBlack76
     double Black76Delta();
 
     // Black76Gamma
@@ -32,4 +33,5 @@ public:
     double Black76Vega();
 
     // 
+    friend class SABR;
 };
