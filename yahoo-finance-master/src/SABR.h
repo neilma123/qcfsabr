@@ -26,19 +26,13 @@ public:
 
     vector<double> ATMCalib(double guess_rho, double guess_nu);
 
-    string AlphaCubic(double curr_val);
+    vector<double> AlphaCubic();
 
     double SABRDelta();
 
-<<<<<<< HEAD:SABR.h
-    vector<double> SABRfullcalib(double guess_alpha, double guess_rho, double guess_nu);
+    vector<double> fullcalib(double guess_alpha, double guess_rho, double guess_nu);
 
-    vector<double> SABRParamlinearbump(string bump_param, double bump_size, bool bump_dir);
-=======
-    vector<double> fullcalib();
-
-    vector<double> Paramlinearbump();
->>>>>>> 915e0e5fc8ce034e349e0e87db33d8769d017b35:yahoo-finance-master/src/SABR.h
+    vector<double> Paramlinearbump(string bump_param, double bump_size, bool bump_dir);
 
     double SABR_to_Black76();
 
@@ -50,13 +44,7 @@ public:
 
     double SABRGamma();
 
-<<<<<<< HEAD:SABR.h
-    vector<double> SABRVolsFromATMCalib(double guess_rho, double guess_nu);
+    vector<double> VolsFromATMCalib(double guess_rho, double guess_nu);
     
-    vector<double> SABRVolsFromFullCalib(double guess_alpha, double guess_rho, double guess_nu);
-=======
-    vector<double> VolsFromATMCalib();
-    
-    vector<double> VolsFromFullCalib();
->>>>>>> 915e0e5fc8ce034e349e0e87db33d8769d017b35:yahoo-finance-master/src/SABR.h
+    vector<double> VolsFromFullCalib(double guess_alpha, double guess_rho, double guess_nu);
 };
