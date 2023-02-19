@@ -11,8 +11,7 @@ using namespace std;
 double SABR::ATMVol_to_Sabr_alpha() {
     vector<double> roots;
     double x[] = {-100000,100000};
-    string cubic_1 = AlphaCubic(x[1]);
-    string cubic_2 = AlphaCubic(x[2]);
+    
     
 };
 
@@ -34,9 +33,9 @@ double SABR::SABRDelta(BlackOption blk) {
 
 }; // Kapil
 
-vector<double> SABR::fullcalib() {};
+vector<double> SABR::fullcalib(double guess_alpha, double guess_rho, double guess_nu) {};
 
-vector<double> SABR::Paramlinearbump() {};
+vector<double> SABR::Paramlinearbump(string bump_param, double bump_size, bool bump_dir) {};
 
 double SABR::SABR_to_Black76() {};
 
@@ -48,7 +47,7 @@ double SABR::SABR_volga() {};
 
 double SABR::SABRGamma() {};
 
-vector<double> SABR::VolsFromATMCalib() {};
+vector<double> SABR::VolsFromATMCalib(double guess_rho, double guess_nu) {};
 
 
 vector<double> VolsFromFullCalib() {};

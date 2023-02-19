@@ -44,7 +44,7 @@ public:
 
     double SABRGamma();
 
-    vector<double> SABRVolsFromATMCalib(double guess_rho, double guess_nu);
+    vector<double> VolsFromATMCalib(double guess_rho, double guess_nu);
     
     vector<double> SABRVolsFromFullCalib(double guess_alpha, double guess_rho, double guess_nu);
 
