@@ -14,7 +14,6 @@ double SABR::ATMVol_to_Sabr_alpha() {
     string cubic_1 = AlphaCubic(x[1]);
     string cubic_2 = AlphaCubic(x[2]);
     
-
 };
 
 vector<double> SABR::ATMCalib(double guess_rho, double guess_nu) {};
