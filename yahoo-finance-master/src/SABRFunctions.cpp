@@ -37,9 +37,9 @@ double SABR::SABRDelta(BlackOption blk) {
 
 }; // Kapil
 
-vector<double> SABR::fullcalib(double guess_alpha, double guess_rho, double guess_nu) {};
+vector<double> SABR::SABRfullcalib(double guess_alpha, double guess_rho, double guess_nu) {};
 
-vector<double> SABR::Paramlinearbump(string bump_param, double bump_size, bool bump_dir) {};
+vector<double> SABR::SABRParamlinearbump(string bump_param, double bump_size, bool bump_dir) {};
 
 double SABR::SABR_to_Black76() {};
 
