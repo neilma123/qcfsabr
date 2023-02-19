@@ -11,28 +11,32 @@ using namespace std;
 double SABR::ATMVol_to_Sabr_alpha() {
     vector<double> roots;
     double x[] = {-100000,100000};
-    vector<double> coefficients = AlphaCubic();
-    vector<double> output;
-    for (auto& it: x) {
-        double curr_val = coefficients[0]*pow(it, 3) + coefficients[1]*pow(it, 2) + coefficients[2]*pow(it, 1) + coefficients[0];
-        output.push_back(curr_val);
-        
-
-    }
+    string cubic_1 = AlphaCubic(x[1]);
+    string cubic_2 = AlphaCubic(x[2]);
+    
 };
 
 vector<double> SABR::ATMCalib(double guess_rho, double guess_nu) {};
 
-vector<double> SABR::AlphaCubic() {
+string SABR::AlphaCubic(double curr_val) {
     double A3 = (pow(1 - this->beta, 2) * this->tex) / (24 * pow(this->fwd_rate, 2 - 2 * this->beta));
 
 };
 
-double SABR::SABRDelta() {};
+// Received an input Black Option object
+double SABR::SABRDelta(BlackOption blk) {
 
-vector<double> SABR::fullcalib(double guess_alpha, double guess_rho, double guess_nu) {};
+    double SABR_imp_vol = SABR_to_Black76();
+    blk.imp_vol = SABR_imp_vol;
+    double SABR_black_76_delta = blk.Black76Delta();
 
-vector<double> SABR::Paramlinearbump(string bump_param, double bump_size, bool bump_dir) {};
+
+
+}; // Kapil
+
+vector<double> SABR::fullcalib() {};
+
+vector<double> SABR::Paramlinearbump() {};
 
 double SABR::SABR_to_Black76() {};
 
@@ -44,7 +48,7 @@ double SABR::SABR_volga() {};
 
 double SABR::SABRGamma() {};
 
-vector<double> SABR::VolsFromATMCalib(double guess_rho, double guess_nu) {};
+vector<double> SABR::VolsFromATMCalib() {};
 
 
 vector<double> VolsFromFullCalib() {};

@@ -28,11 +28,11 @@ public:
 
     vector<double> AlphaCubic();
 
-    double SABRDelta();
+    double SABRDelta(BlackOption blk);
 
-    vector<double> fullcalib(double guess_alpha, double guess_rho, double guess_nu);
+    vector<double> SABRfullcalib(double guess_alpha, double guess_rho, double guess_nu);
 
-    vector<double> Paramlinearbump(string bump_param, double bump_size, bool bump_dir);
+    vector<double> SABRParamlinearbump(string bump_param, double bump_size, bool bump_dir);
 
     double SABR_to_Black76();
 
@@ -44,7 +44,8 @@ public:
 
     double SABRGamma();
 
-    vector<double> VolsFromATMCalib(double guess_rho, double guess_nu);
+    vector<double> SABRVolsFromATMCalib(double guess_rho, double guess_nu);
     
-    vector<double> VolsFromFullCalib(double guess_alpha, double guess_rho, double guess_nu);
+    vector<double> SABRVolsFromFullCalib(double guess_alpha, double guess_rho, double guess_nu);
+
 };
