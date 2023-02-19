@@ -53,5 +53,4 @@ double SABR::SABRGamma() {};
 
 vector<double> VolsFromATMCalib() {};
 
-
 vector<double> VolsFromFullCalib() {};
