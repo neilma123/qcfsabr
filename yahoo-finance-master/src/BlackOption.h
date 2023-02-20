@@ -10,7 +10,7 @@ private:
     // add variables
     double fwd_rate;
     double expiry;
-    double rfr = 0.458; //  hardcoded for now, check later
+    double rfr; //  hardcoded for now, check later
     bool cp; // True if Call, False if Put
 public:
     double strike;
@@ -31,7 +31,6 @@ public:
     double Black76OptionPrice();
     
     // Black76Delta
-    // Imp_vol is a parameter since it can be acquired from SABRtoBlack76
     double Black76Delta();
 
     // Black76Gamma
