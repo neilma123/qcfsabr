@@ -23,4 +23,11 @@ double BlackOption::Black76Gamma() {};
 
 double BlackOption::Black76Vega() {};
 
+void BlackOption::set_imp_vol(double iv){
+    this->imp_vol = iv;
+}
+
+void BlackOption::set_strike_price(double strike_in){
+    this->strike = strike_in;
+}
     // 
