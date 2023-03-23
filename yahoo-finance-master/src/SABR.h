@@ -23,9 +23,7 @@ private:
 public:
 
     SABR(vector<BlackOption> op_in, double atmvol_in, double beta_in, double rho_in, double nu_in, 
-        vector<double> strikes_in, vector<double> market_vols_in, double rfr_in, bool cp_in) :
-        options(op_in), ATM_vol(atmvol_in), beta(beta_in), rho(rho_in), nu(nu_in), strikes(strikes_in),
-        market_vols(market_vols_in), rfr(rfr_in), cp(cp_in) {};
+        vector<double> strikes_in, vector<double> market_vols_in, double rfr_in, bool cp_in) {};
 
     double ATMVol_to_Sabr_alpha();
 
@@ -37,7 +35,7 @@ public:
 
     vector<double> SABRfullcalib(double guess_alpha, double guess_rho, double guess_nu);
 
-    vector<double> SABRParamlinearbump(string bump_param, double bump_size, bool bump_dir);
+    double SABRParamlinearbump(string bump_param, double bump_size, bool bump_dir);
 
     double SABR_to_Black76();
 
