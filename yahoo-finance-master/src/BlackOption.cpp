@@ -21,7 +21,7 @@ double BlackOption::Black76Delta() {
     // Black76Gamma
 double BlackOption::Black76Gamma() {};
 
-double BlackOption::Black76Vega() {};
+double BlackOption::Black76Vega(double SABRImpVol) {};
 
 void BlackOption::set_imp_vol(double iv){
     this->imp_vol = iv;

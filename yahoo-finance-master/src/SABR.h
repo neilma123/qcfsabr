@@ -41,7 +41,7 @@ public:
 
     double SABR_vanna();
 
-    double SABR_vega();
+    double SABR_vega(double tex, double fwd_rate, double strike, double alpha);
 
     double SABR_volga();
 

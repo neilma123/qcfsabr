@@ -36,7 +36,7 @@ public:
     // Black76Gamma
     double Black76Gamma();
 
-    double Black76Vega();
+    double Black76Vega(double SABRImpVol);
 
     // 
     friend class SABR;

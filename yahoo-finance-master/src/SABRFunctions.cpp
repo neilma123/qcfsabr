@@ -74,7 +74,13 @@ double SABR::SABR_to_Black76(double fwd_rate, double strike, double alpha, doubl
 
 double SABR::SABR_vanna() {};
 
-double SABR::SABR_vega() {};
+double SABR::SABR_vega(double tex, double fwd_rate, double strike, double alpha) {
+      double SABRImpVol = SABR::SABR_to_Black76(fwd_rate, strike, alpha, tex);
+      // CHANGE LATER
+      double Black76VegaPart = this->options[0].Black76Vega(SABRImpVol);
+      double  SABRATMVol = SABR::SABR_to_Black76(fwd_rate, tex, alpha);
+      return Black76VegaPart * SABRImpVol / SABRATMVol;
+};
 
 double SABR::SABR_volga() {};
 
