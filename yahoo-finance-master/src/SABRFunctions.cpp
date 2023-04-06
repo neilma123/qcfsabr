@@ -11,8 +11,12 @@ using namespace std;
 double SABR::ATMVol_to_Sabr_alpha() {
     vector<double> roots;
     double x[] = {-100000,100000};
+    // pass in the atm black option
+    vector<double> coef = AlphaCubic();
     
-    
+
+
+
 };
 
 vector<double> SABR::ATMCalib(double guess_rho, double guess_nu) {};
@@ -29,12 +33,9 @@ vector<double> SABR::AlphaCubic() {
 
 // Received an input Black Option object
 double SABR::SABRDelta(BlackOption blk) {
-
     double SABR_imp_vol = SABR_to_Black76();
     blk.imp_vol = SABR_imp_vol;
     double SABR_black_76_delta = blk.Black76Delta();
-
-
 
 }; // Kapil
 
