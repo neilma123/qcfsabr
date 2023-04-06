@@ -29,7 +29,7 @@ public:
 
     vector<double> ATMCalib(double guess_rho, double guess_nu);
 
-    string AlphaCubic(double tex, double fwd_rate);
+    vector<double> AlphaCubic(double tex, double fwd_rate);
 
     double SABRDelta(BlackOption blk);
 
