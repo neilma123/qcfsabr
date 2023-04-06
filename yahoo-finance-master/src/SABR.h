@@ -39,7 +39,7 @@ public:
 
     vector<double> SABRParamlinearbump(string bump_param, double bump_size, bool bump_dir);
 
-    double SABR_to_Black76();
+    double SABR_to_Black76(double fwd_rate, double strike, double alpha, double tex);
 
     double SABR_vanna();
 
