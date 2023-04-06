@@ -78,7 +78,7 @@ double SABR::SABR_vega(double tex, double fwd_rate, double strike, double alpha)
       double SABRImpVol = SABR::SABR_to_Black76(fwd_rate, strike, alpha, tex);
       // CHANGE LATER
       double Black76VegaPart = this->options[0].Black76Vega(SABRImpVol);
-      double  SABRATMVol = SABR::SABR_to_Black76(fwd_rate, tex, alpha);
+      double  SABRATMVol = SABR::SABR_to_Black76(fwd_rate, strike, alpha, tex);
       return Black76VegaPart * SABRImpVol / SABRATMVol;
 };
 
@@ -86,6 +86,8 @@ double SABR::SABR_volga() {};
 
 double SABR::SABRGamma() {};
 
-vector<double> SABR::SABRVolsFromATMCalib(double guess_rho, double guess_nu) {};
+vector<double> SABR::SABRVolsFromATMCalib(double guess_rho, double guess_nu) {
+
+};
 
 vector<double> SABR::SABRVolsFromFullCalib(double guess_alpha, double guess_rho, double guess_nu) {};
