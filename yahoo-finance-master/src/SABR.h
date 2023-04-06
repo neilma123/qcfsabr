@@ -42,9 +42,9 @@ public:
 
     double SABR_vanna();
 
-    double SABR_vega();
+    double SABR_vega(double tex, double fwd_rate, double strike);
 
-    double SABR_volga();
+    double SABR_volga(double fp, double strike, double tex);
 
     double SABRGamma();
 

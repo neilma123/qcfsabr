@@ -81,7 +81,9 @@ double SABR::SABRDelta(BlackOption blk) {
     blk.imp_vol = SABR_imp_vol;
     double SABR_black_76_delta = blk.Black76Delta();
     double SABR_black76Vega = this->SABR_vega();
-    double bump_forward_up = SABRParamlinearbump(); 
+    double bump_forward_up = SABRParamlinearbump();
+
+    return 0.00;
 }; // Kapil
 
 vector<double> SABR::SABRfullcalib(double guess_alpha, double guess_rho, double guess_nu) {};
@@ -108,15 +110,20 @@ double SABR::SABR_to_Black76(double fwd_rate, double strike, double alpha, doubl
 
 double SABR::SABR_vanna() {};
 
-double SABR::SABR_vega(double tex, double fwd_rate, double strike, double alpha) {
-      double SABRImpVol = SABR::SABR_to_Black76(fwd_rate, strike, alpha, tex);
+double SABR::SABR_vega(double tex, double fwd_rate, double strike) {
+      double SABRImpVol = SABR::SABR_to_Black76(fwd_rate, strike, tex, this->alpha, this->beta, this->rho, this->nu);
       // CHANGE LATER
       double Black76VegaPart = this->options[0].Black76Vega(SABRImpVol);
-      double  SABRATMVol = SABR::SABR_to_Black76(fwd_rate, strike, alpha, tex);
+      double SABRATMVol = SABR::SABR_to_Black76(fwd_rate, strike, tex, this->alpha, this->beta, this->rho, this->nu);
       return Black76VegaPart * SABRImpVol / SABRATMVol;
 };
 
-double SABR::SABR_volga() {};
+double SABR::SABR_volga(double fp, double strike, double tex) {
+    
+
+    
+    return 0.00;
+};
 
 double SABR::SABRGamma() {};
 
