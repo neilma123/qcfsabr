@@ -29,7 +29,32 @@ SABR::SABR(vector<BlackOption> op_in, double atmvol_in, double beta_in, double r
         options(op_in), ATM_vol(atmvol_in), beta(beta_in), rho(rho_in), nu(nu_in), strikes(strikes_in), market_vols(market_vols_in),
         rfr(rfr_in), cp(cp_in) {};
 
-vector<double> SABR::ATMCalib(double guess_rho, double guess_nu) {};
+
+vector<double> SABR::ATMCalib(double guess_rho, double guess_nu) {
+    if (this->strikes.size() != this->market_vols.size()) {
+        cout << "Strikes vector must be same length as market data!" << endl;
+        exit(1);
+    }
+    if (abs(guess_rho) > 1) {
+        cout << "Correlation parameter Rho must be between -1 and 1!" << endl;
+        exit(1);
+    }
+    if (guess_nu <= 0) {
+        cout << "Vol-of-vol parameter must be non-zero!" << endl;
+        exit(1);
+    }
+
+    vector<double> calib_vols(this->strikes.size(), 0);
+    vector<double> init_params = {guess_rho, guess_nu};
+
+    int v1 = guess_rho;
+    int v2 = guess_nu;
+
+    double ATMAlpha = SABR::ATMVol_to_Sabr_alpha()
+    
+
+
+};
 
 vector<double> SABR::AlphaCubic(double tex, double fwd_rate) {
     double A3 = (pow(1 - this->beta, 2) * tex) / (24 * pow(fwd_rate, 2 - 2 * this->beta));
