@@ -13,6 +13,7 @@ private:
     // double fwd_rate; specific to an option
     double ATM_vol;
     // double tex;
+    double alpha;
     double beta; // pre-setting beta
     double rho; 
     double nu; 
@@ -27,7 +28,7 @@ public:
 
     double ATMVol_to_Sabr_alpha(double tex, double fwd_rate);
 
-    vector<double> ATMCalib(double guess_rho, double guess_nu);
+    double ATMCalib(double guess_rho, double guess_nu, double tex, double fwd_rate);
 
     vector<double> AlphaCubic(double tex, double fwd_rate);
 
