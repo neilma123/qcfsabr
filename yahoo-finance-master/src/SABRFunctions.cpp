@@ -8,13 +8,20 @@
 
 using namespace std;
 
-double SABR::ATMVol_to_Sabr_alpha() {
+double SABR::ATMVol_to_Sabr_alpha(double tex, double fwd_rate) {
     vector<double> roots;
-    double x[] = {-100000,100000};
     // pass in the atm black option
-    vector<double> coef = AlphaCubic();
-    string cubic_1 = AlphaCubic(x[1]);
-    string cubic_2 = AlphaCubic(x[2]);
+    vector<double> coef = AlphaCubic(tex, fwd_rate);
+    double x = 0;
+
+    while (x < 100000) {
+        double y = coef[0] * pow(x, 3) + coef[1] * pow(x, 2)  + coef[2] * x + coef[3];
+        if (y >= -.00001 && y <= .00001){
+            return x;
+        }
+        x += .00001;
+    }
+    exit;
 };
 
 SABR::SABR(vector<BlackOption> op_in, double atmvol_in, double beta_in, double rho_in, double nu_in, 

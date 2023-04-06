@@ -25,7 +25,7 @@ public:
     SABR(vector<BlackOption> op_in, double atmvol_in, double beta_in, double rho_in, double nu_in, 
         vector<double> strikes_in, vector<double> market_vols_in, double rfr_in, bool cp_in) {};
 
-    double ATMVol_to_Sabr_alpha();
+    double ATMVol_to_Sabr_alpha(double tex, double fwd_rate);
 
     vector<double> ATMCalib(double guess_rho, double guess_nu);
 
