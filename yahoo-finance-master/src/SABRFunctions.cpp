@@ -24,11 +24,14 @@ SABR::SABR(vector<BlackOption> op_in, double atmvol_in, double beta_in, double r
 
 vector<double> SABR::ATMCalib(double guess_rho, double guess_nu) {};
 
-string SABR::AlphaCubic(double curr_val) {
-    
-    
-
-
+vector<double> SABR::AlphaCubic(double tex, double fwd_rate) {
+    double A3 = (pow(1 - this->beta, 2) * tex) / (24 * pow(fwd_rate, 2 - 2 * this->beta));
+    double A2 = (this->rho * this->nu * this ->beta * tex) / (4 * pow(fwd_rate, 1 - this->beta));
+    double A1 = 1 + (2 - 3 * pow(this->rho, 2)) / 24 * pow(this->nu, 2) * tex;
+    double A0 = -1 * this->ATM_vol * pow(fwd_rate, 1 - this->beta);
+    vector<double> coefficients = {A3, A2, A1, A0};
+    coefficients.resize(4);
+    return coefficients;
 };
 
 // Received an input Black Option object
