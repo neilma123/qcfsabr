@@ -15,7 +15,7 @@ int main(int argc, char* argv[]){
         cout << argv[i] << " ";
     } // for debugging purposes
 
-    // command line arg structure: arg[1] = [MODE] -sabr or -help arg[2] = name of ticker
+    // command line arg structure: arg[0] = [MODE] -sabr or -help arg[1] = name of ticker
     string mode(argv[1]);
     if(mode == "-help"){
         cout << "Usage [add something about how to use]";
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
     for(size_t i = 0; i < options.size(); ++i){
         
         // TODO: fill in data using the yfinance library
-
+        
 
         strike_prices[i] = 0.00; // TODO: add data for each option contract's strike price
         market_vols[i] = 0.00; // TODO: add data for each option contract's strike price
@@ -56,6 +56,8 @@ int main(int argc, char* argv[]){
     //                                          2. Vector of input strike prices
     //                                          3. Vector of Black-76-Equivalent I.V.s
     // TODO: Call SABRVolsFromFullCalib the right way here and assign to above vectors the right values
+    double guess_alpha = 0.00; double guess_rho = 0.00; double guess_nu = 0.00;
+    SABR_obj.SABRfullcalib(guess_alpha, guess_rho, guess_nu);
 
     vector<double> final_prices(num_options, 0.00);
 
