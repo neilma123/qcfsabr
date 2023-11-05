@@ -14,7 +14,7 @@ double BlackOption::Black76OptionPrice() {
     
     // Black76Delta
 double BlackOption::Black76Delta() {
-
+    cout << "fuck";
     return 0.00;
 };
 
