@@ -110,7 +110,25 @@ double SABR::SABR_to_Black76(double fwd_rate, double strike, double alpha, doubl
     }
 };
 
-double SABR::SABR_vanna() {};
+double SABR::SABR_vanna(double F0, double K, double tex, double rfr) {
+    // Calculate Black-76-equivalent volatility for provided inputs:
+    double SABRImpVol = SABRFunctions::SABRtoBlack76(F0, K, tex, alpha, beta, rho, nu);
+
+    // Calculate Black-76 Vega:
+    double Black76VegaPart = SABRFunctions::Black76Vega(F0, K, SABRImpVol, tex, rfr);
+
+    // Calculate the numerical correction term:
+    double SABRBumpRhoUp = SABRFunctions::SABRParamLinearBump(F0, K, tex, alpha, beta, rho, nu, "Rho", "up");
+    double SABRBumpRhoDn = SABRFunctions::SABRParamLinearBump(F0, K, tex, alpha, beta, rho, nu, "Rho", "dn");
+
+    // Calculate CENTRAL DIFFERENCE for predicted change:
+    double SABRCorrectionFactor = (SABRBumpRhoUp - SABRBumpRhoDn) / 0.0001; // 0.5bp up + 0.5bp dn = 1bp total bump
+
+    // Calculate final value:
+    double FinalVanna = Black76VegaPart * SABRCorrectionFactor;
+
+    return FinalVanna;
+};
 
 double SABR::SABR_vega(double tex, double fwd_rate, double strike) {
       double SABRImpVol = SABR::SABR_to_Black76(fwd_rate, strike, tex, this->alpha, this->beta, this->rho, this->nu);
