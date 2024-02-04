@@ -81,7 +81,7 @@ double SABR::SABRDelta(BlackOption blk) {
     blk.imp_vol = SABR_imp_vol;
     double SABR_black_76_delta = blk.Black76Delta();
     double SABR_black76Vega = this->SABR_vega();
-    double bump_forward_up = SABRParamlinearbump();
+    vector<double> bump_forward_up = SABRParamlinearbump();
 
     return 0.00;
 }; // Kapil
