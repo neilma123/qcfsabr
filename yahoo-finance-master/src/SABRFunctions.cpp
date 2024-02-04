@@ -88,7 +88,9 @@ double SABR::SABRDelta(BlackOption blk) {
 
 vector<double> SABR::SABRfullcalib(double guess_alpha, double guess_rho, double guess_nu) {};
 
-vector<double> SABR::SABRParamlinearbump(string bump_param, double bump_size, bool bump_dir) {};
+vector<double> SABR::SABRParamlinearbump(string bump_param, double bump_size, bool bump_dir) {
+    
+};
 
 
 double SABR::SABR_to_Black76(double fwd_rate, double strike, double alpha, double tex) {
@@ -108,7 +110,25 @@ double SABR::SABR_to_Black76(double fwd_rate, double strike, double alpha, doubl
     }
 };
 
-double SABR::SABR_vanna() {};
+double SABR::SABR_vanna(double F0, double K, double tex, double rfr) {
+    // Calculate Black-76-equivalent volatility for provided inputs:
+    double SABRImpVol = SABRFunctions::SABRtoBlack76(F0, K, tex, alpha, beta, rho, nu);
+
+    // Calculate Black-76 Vega:
+    double Black76VegaPart = SABRFunctions::Black76Vega(F0, K, SABRImpVol, tex, rfr);
+
+    // Calculate the numerical correction term:
+    double SABRBumpRhoUp = SABRFunctions::SABRParamLinearBump(F0, K, tex, alpha, beta, rho, nu, "Rho", "up");
+    double SABRBumpRhoDn = SABRFunctions::SABRParamLinearBump(F0, K, tex, alpha, beta, rho, nu, "Rho", "dn");
+
+    // Calculate CENTRAL DIFFERENCE for predicted change:
+    double SABRCorrectionFactor = (SABRBumpRhoUp - SABRBumpRhoDn) / 0.0001; // 0.5bp up + 0.5bp dn = 1bp total bump
+
+    // Calculate final value:
+    double FinalVanna = Black76VegaPart * SABRCorrectionFactor;
+
+    return FinalVanna;
+};
 
 double SABR::SABR_vega(double tex, double fwd_rate, double strike) {
       double SABRImpVol = SABR::SABR_to_Black76(fwd_rate, strike, tex, this->alpha, this->beta, this->rho, this->nu);
@@ -125,7 +145,38 @@ double SABR::SABR_volga(double fp, double strike, double tex) {
     return 0.00;
 };
 
-double SABR::SABRGamma() {};
+double SABR::SABRGamma(double F0, double K, double tex, double rfr, double Alpha, double Beta, double Rho, double Nu) {
+  // Calculate Black-76-equivalent volatility for provided inputs.
+  double SABRImpVol = SABRFunctions::SABRtoBlack76(F0, K, tex, Alpha, Beta, Rho, Nu);
+
+  // Calculate the usual d1 term.
+  double d1 = (log(F0 / K) + 0.5 * SABRImpVol * SABRImpVol * tex) / (SABRImpVol * sqrt(tex));
+
+  // Calculate Black-76 Gamma and Vega.
+  double Black76GammaPart = SABRFunctions::Black76Gamma(F0, K, SABRImpVol, tex, rfr);
+  double Black76VegaPart = SABRFunctions::Black76Vega(F0, K, SABRImpVol, tex, rfr);
+
+  // Calculate the various bumps to figure out the multipliers for the Gamma equation.
+  // Upward bump.
+  double SABRBumpForwardUp = SABRFunctions::SABRParamLinearBump(F0, K, tex, Alpha, Beta, Rho, Nu, 'F0', "up");
+  // Downward bump.
+  double SABRBumpForwardDn = SABRFunctions::SABRParamLinearBump(F0, K, tex, Alpha, Beta, Rho, Nu, 'F0', "dn");
+
+  // Calculate first-order central-differences bump.
+  double Black76FirstOrderChange = (SABRBumpForwardUp - SABRBumpForwardDn) / 0.0001;
+
+  // Calculate second-order central-differences bump.
+  double Black76SecondOrderChange = (SABRBumpForwardUp - 2 * SABRImpVol + SABRBumpForwardDn) / (0.0001 * 0.0001);
+
+  // Calculate final correction term.
+  double CorrectionTerm = exp(-rfr * tex) * stats::dnorm(d1) - K * exp(-rfr * tex) * stats::dnorm(d1);
+
+  // Put it all together to calculate Gamma.
+  double FinalGamma = Black76GammaPart + Black76VegaPart * Black76SecondOrderChange + Black76FirstOrderChange * CorrectionTerm;
+
+  return FinalGamma;
+}
+
 
 vector<double> SABR::SABRVolsFromATMCalib(double guess_rho, double guess_nu) {
 
