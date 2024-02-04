@@ -69,9 +69,12 @@ void nelson_mead(){
     // while (stand(u, v, w)[0] > 0.1 && stand(u, v, w)[0] > 0.1){
     vector<vector<double>> order = {u, v, w};
     std::sort(order.begin(), order.end());
-    while (stand(order[0], order[1], order[2]) > 0.05) {
-
-    }
+    vector<double> std = {0.05, 0,05};
+    print_vec(stand(order[0], order[1], order[2]));
+    // while (stand(order[0], order[1], order[2]) > std) {
+    //     cout << "urmom";
+    //     break;
+    // }
     // } 
 }
 
