@@ -9,7 +9,7 @@
 using namespace std;
 
 double func(vector<double> u){
-    return pow(u[0], 2) + pow(u[1], 2);
+    return pow(u[0] - 1, 2) + pow(u[1] + 5, 2);
 }
 double distance(vector<double> x, vector<double> y){
     return sqrt(pow(x[0]-y[0], 2) + pow(x[1]-y[1], 2));
@@ -63,20 +63,100 @@ bool operator>(vector<double> lhs, vector<double> rhs){
     return false;
 }
 void nelson_mead(){
-    vector<double> u = {2, 0};
-    vector<double> w = {1, 0};
-    vector<double> v = {3, 0};
+    vector<double> u = {2, 1};
+    vector<double> w = {1, 2};
+    vector<double> v = {3, 3};
     // while (stand(u, v, w)[0] > 0.1 && stand(u, v, w)[0] > 0.1){
     vector<vector<double>> order = {u, v, w};
     std::sort(order.begin(), order.end());
-    vector<double> std = {0.05, 0,05};
-    // print_vec(stand(order[0], order[1], order[2]));
-    while (stand(order[0], order[1], order[2]) > std) {
-        cout << "urmom";
-        break;
+    vector<double> std = {0.005, 0.005};
+    print_vec(stand(order[0], order[1], order[2])); 
+    while (stand(order[0], order[1], order[2])[0] > std[0] || stand(order[0], order[1], order[2])[1] > std[1]){
+        // cout << "urmom" << endl;
+        std::sort(order.begin(), order.end());
+        vector<double> centroid_1 = centroid(order[0], order[1]);
+        vector<double> reflected_point = reflected(order[2], centroid_1);
+        cout << "reflected point is ";
+        print_vec(reflected_point);
+        if (reflected_point < order[2] && reflected_point >= order[0]){
+            order[2] = reflected_point;
+            cout << "reflected ";
+            print_vec(order[2]);
+            cout << "to: "; 
+            print_vec(reflected_point);
+            cout << endl;
+            print_vec(order[0]);
+            print_vec(order[1]);
+            print_vec(order[2]);
+            continue;
+        }
+        if (reflected_point < order[0]){
+            vector<double> expanded_point = expanded(order[2], reflected_point);
+            cout << "expanded point is ";
+            print_vec(expanded_point);
+            if (expanded_point < reflected_point){
+                order[2] = expanded_point;
+                cout << "expanded";
+                print_vec(order[2]);
+                cout << "to: ";
+                print_vec(expanded_point);
+                cout << endl;
+                continue;
+            }
+            else {
+                order[2] = reflected_point;
+                print_vec(order[0]);
+                print_vec(order[1]);
+                print_vec(order[2]);
+                cout << "reflected ";
+                print_vec(order[2]);
+                cout << "to: ";
+                print_vec(reflected_point);
+                cout << endl;
+                continue;
+            }
+        }
+        if (reflected_point < order[2]){
+            vector<double> far_contracted_point = far_contract(order[2], centroid_1);
+            cout << "far contracted point is ";
+            print_vec(far_contracted_point);
+            if (far_contracted_point <= reflected_point){
+                order[2] = far_contracted_point;
+                cout << "far contracted ";
+                print_vec(order[2]);
+                cout << "to: ";
+                print_vec(far_contracted_point);
+                cout << endl;
+                continue;
+            }
+            else {
+                vector<double> close_contracted_point = close_contract(order[2], centroid_1);
+                cout << "close contracted point is ";
+                print_vec(close_contracted_point);
+                cout << "made it here";
+                order[2] = close_contracted_point;
+                order[1] = close_contracted_point;
+                print_vec(order[0]);
+                cout << endl;
+                print_vec(order[1]);
+                cout << endl;
+                print_vec(order[2]);
+                cout << endl;
+            }
+        }
+
+        cout << "still going" << endl;
+        print_vec(stand(order[0], order[1], order[2]));
+        print_vec(order[0]);
+        print_vec(order[1]);
+        print_vec(order[2]);
+        std::sort(order.begin(), order.end());
     }
+    print_vec(order[0]);
+    print_vec(order[1]);
+    print_vec(order[2]);
+    print_vec(stand(order[0], order[1], order[2]));
     } 
-}
 
 int main() {
     // S&P 500
