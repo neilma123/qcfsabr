@@ -70,12 +70,12 @@ void nelson_mead(){
     vector<vector<double>> order = {u, v, w};
     std::sort(order.begin(), order.end());
     vector<double> std = {0.05, 0,05};
-    print_vec(stand(order[0], order[1], order[2]));
-    // while (stand(order[0], order[1], order[2]) > std) {
-    //     cout << "urmom";
-    //     break;
-    // }
-    // } 
+    // print_vec(stand(order[0], order[1], order[2]));
+    while (stand(order[0], order[1], order[2]) > std) {
+        cout << "urmom";
+        break;
+    }
+    } 
 }
 
 int main() {
