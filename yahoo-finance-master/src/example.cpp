@@ -18,7 +18,9 @@ vector<double> centroid(vector<double> x, vector<double> y){
     return {(x[0]+y[0])/2, (x[1]+y[1])/2};
 }
 vector<double> reflected(vector<double> w, vector<double> centroid){
-    return {w[0] - 2*centroid[0], w[1] - 2*centroid[1]};
+    double distance_from_first = abs(w[0] - centroid[0]); 
+    double distance_from_second = abs(w[1] - centroid[1]); 
+    return {w[0] - 2 * distance_from_first, w[1] - 2 * distance_from_second};
 }
 vector<double> expanded(vector<double> w, vector<double> centroid){
     return {w[0] - 4*centroid[0], w[1] - 4*centroid[1]};
@@ -150,6 +152,7 @@ void nelson_mead(){
         print_vec(order[0]);
         print_vec(order[1]);
         print_vec(order[2]);
+        print_vec(centroid_1);
         std::sort(order.begin(), order.end());
     }
     print_vec(order[0]);
