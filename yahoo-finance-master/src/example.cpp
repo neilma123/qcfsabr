@@ -22,14 +22,14 @@ vector<double> centroid(vector<double> x, vector<double> y)
 }
 vector<double> reflected(vector<double> w, vector<double> centroid)
 {
-    double distance_from_first = abs(w[0] - centroid[0]);
-    double distance_from_second = abs(w[1] - centroid[1]);
+    double distance_from_first = (w[0] - centroid[0]);
+    double distance_from_second = (w[1] - centroid[1]);
     return {w[0] - 2 * distance_from_first, w[1] - 2 * distance_from_second};
 }
 vector<double> expanded(vector<double> w, vector<double> centroid)
 {
-    double distance_from_first = abs(w[0] - centroid[0]);
-    double distance_from_second = abs(w[1] - centroid[1]);
+    double distance_from_first = (w[0] - centroid[0]);
+    double distance_from_second = (w[1] - centroid[1]);
     return {w[0] - 4 * distance_from_first, w[1] - 4 * distance_from_second};
 }
 vector<double> close_contract(vector<double> w, vector<double> centroid)
@@ -171,7 +171,8 @@ void nelson_mead()
         bool second_condition = func(reflected_point) < func(order[0]);
         bool third_condition = func(expanded_point) < func(reflected_point);
         bool fourth_condition = func(reflected_point) < func(order[2]);
-        bool fifth_condition = func(far_contracted_point) <= func(reflected_point);
+        bool fifth_condition = func(close_contracted_point) <= func(reflected_point);
+        bool sixth_condition = func(far_contracted_point) < func(order[2]);
         if (first_condition)
         {
             cout << "first hit" << endl;
@@ -191,6 +192,10 @@ void nelson_mead()
         if (fifth_condition)
         {
             cout << "fifth hit" << endl;
+        }
+        if (sixth_condition)
+        {
+            cout << "sixth hit" << endl;
         }
         else
         {
@@ -244,23 +249,28 @@ void nelson_mead()
             // vector<double> far_contracted_point_1 = far_contract(order[0], order[1]);
             // vector<double> far_contracted_point_2 = far_contract(order[0], order[2]);
 
-            cout << "far contracted point is ";
-            print_vec(far_contracted_point);
+            //cout << "far contracted point is ";
+            //print_vec(far_contracted_point);
             if (fifth_condition){
-                order[2] = far_contracted_point;
-                cout << "far contracted ";
+                order[2] = close_contracted_point;
+                cout << "close contracted ";
                 print_vec(order[2]);
                 cout << "to: ";
-                print_vec(far_contracted_point);
+                print_vec(close_contracted_point);
                 cout << endl;
                 continue;
             }
-            else{
+        } else{
 
                 cout << "made it here close contracting";
-                if (close_contracted_point < order[2])
+                if (sixth_condition)
                 {
-                    order[2] = close_contracted_point;
+                    order[2] = far_contracted_point;
+                    cout << "far contracted ";
+                    print_vec(order[2]);
+                    cout << "to: ";
+                    print_vec(far_contracted_point);
+                    cout << endl;
                     continue;
                 }
                 // print_vec(order[0]);
@@ -270,7 +280,7 @@ void nelson_mead()
                 // print_vec(order[2]);
                 // cout << endl;
             }
-        }
+        
         cout << "shrinking now" << endl;
         order = shrink(order);
         cout << "standard deviation is ";
