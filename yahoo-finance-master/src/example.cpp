@@ -40,8 +40,8 @@ vector<double> close_contract(vector<double> w, vector<double> centroid)
 }
 vector<double> far_contract(vector<double> w, vector<double> centroid)
 {
-    double first_contract = centroid[0] + 1.5 * (w[0] - centroid[0]);
-    double second_contract = centroid[1] + 1.5 * (w[1] - centroid[1]);
+    double first_contract = centroid[0] + 0.5 * (w[0] - centroid[0]);
+    double second_contract = centroid[1] + 0.5 * (w[1] - centroid[1]);
     return {first_contract, second_contract};
 }
 
@@ -151,7 +151,7 @@ void nelson_mead()
         vector<double> reflected_point = reflected(order[2], centroid_1);
         vector<double> expanded_point = expanded(order[2], centroid_1);
         vector<double> far_contracted_point = far_contract(order[2], centroid_1);
-        vector<double> close_contracted_point = close_contract(order[2], centroid_1);
+        vector<double> close_contracted_point = close_contract(reflected_point, centroid_1);
         cout << "reflected is ";
         print_vec(reflected_point);
         cout << "expanded is ";
@@ -167,7 +167,7 @@ void nelson_mead()
         print_vec(order[2]);
         cout << "reflected point is ";
         print_vec(reflected_point);
-        bool first_condition = func(reflected_point) < func(order[2]) && func(reflected_point) >= func(order[0]);
+        bool first_condition = func(reflected_point) < func(order[1]) && func(reflected_point) >= func(order[0]);
         bool second_condition = func(reflected_point) < func(order[0]);
         bool third_condition = func(expanded_point) < func(reflected_point);
         bool fourth_condition = func(reflected_point) < func(order[2]);
