@@ -139,10 +139,23 @@ double SABR::SABR_vega(double tex, double fwd_rate, double strike) {
 };
 
 double SABR::SABR_volga(double fp, double strike, double tex) {
-    
+    // Calculate Black-76-equivalent volatility for provided inputs:
+   double  SABRImpVol = SABR::SABR_to_Black76(fp, strike, tex, this->alpha, this->beta, this->rho, this->nu);
 
-    
-    return 0.00;
+    // Calculate Black-76 Vega:
+    double Black76VegaPart = SABR::Black76Vega(SABRImpVol);
+
+    // Calculate the numerical correction term:
+    vector<double> SABRBumpNuUp = SABR::SABRParamlinearbump(F0, K, tex, Alpha, Beta, Rho, Nu, 'Nu', bumpdir = 'up');
+    vector<double> SABRBumpNuDn = SABR::SABRParamlinearbump(F0, K, tex, Alpha, Beta, Rho, Nu, 'Nu', bumpdir = 'dn');
+
+    // Calculate CENTRAL DIFFERENCE for predicted change:
+    double SABRCorrectionFactor = (SABRBumpNuUp - SABRBumpNuDn) / 0.0001; // 0.5bp up+ 0.5bp dn = 1bp total bump
+
+    // Calculate final value:
+    double FinalVolga = Black76VegaPart * SABRCorrectionFactor;
+
+    return FinalVolga
 };
 
 double SABR::SABRGamma(double F0, double K, double tex, double rfr, double Alpha, double Beta, double Rho, double Nu) {
