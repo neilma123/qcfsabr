@@ -30,7 +30,7 @@ SABR::SABR(vector<BlackOption> op_in, double atmvol_in, double beta_in, double r
         rfr(rfr_in), cp(cp_in) {};
 
 
-double SABR::ATMCalib(double guess_rho, double guess_nu, double tex, double fwd_rate) {
+vector<double> SABR::ATMCalib(double guess_rho, double guess_nu, double tex, double fwd_rate) {
     if (this->strikes.size() != this->market_vols.size()) {
         cout << "Strikes vector must be same length as market data!" << endl;
         exit(1);
@@ -179,7 +179,7 @@ double SABR::SABRGamma(double F0, double K, double tex, double rfr, double Alpha
 
 
 vector<double> SABR::SABRVolsFromATMCalib(double guess_rho, double guess_nu) {
-    
+    double calibrated_rho_nu_results = ATMCalib()
 
 };
 
